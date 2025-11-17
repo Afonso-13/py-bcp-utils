@@ -13,6 +13,7 @@ BCP_NATIVE_TYPE_MAP = {
 
     'VARCHAR':   {'field_type': 'CharPrefix',  'prefix_length': 2, 'column_type': 'SQLVARYCHAR'},
     'NVARCHAR':  {'field_type': 'NCharPrefix', 'prefix_length': 2, 'column_type': 'SQLNVARCHAR'},
+    'GEOMETRY':  {'field_type': 'NativePrefix','prefix_length': 1, 'column_type': 'SQLUDT'},
 }
 
 def generate_bcp_xml(table_schema: dict,
