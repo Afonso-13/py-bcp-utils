@@ -1,8 +1,5 @@
 # Python BCP Utility (py-bcp-utils)
 
-[![PyPI version](https://badge.fury.io/py/py-bcp-utils.svg)](https://badge.fury.io/py/py-bcp-utils)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 A Python utility to run the SQL Server `bcp` (Bulk Copy Program) command using a Pandas DataFrame as the source.
 
 This package provides two methods for high-speed bulk inserts:
@@ -36,7 +33,7 @@ This package provides two methods for high-speed bulk inserts:
     - On Windows, this is typically installed with **SQL Server Management Studio (SSMS)** or the **Microsoft Command Line Utilities for SQL Server**.
         
 
-## Installation
+## 💾 Installation
 
 Once the package is published to the real PyPI, you can install it with:
 
@@ -45,34 +42,12 @@ Bash
 ```
 pip install py-bcp-utils
 ```
-## Native Format Supported Types
-
-The high-performance `bulk_insert_bcp_native` function currently supports the following SQL Server data types. You must ensure the `type` specified in your `table_schema` dictionary matches one of the following strings (case-insensitive):
-
-- **Integer Types:**
-    - `BIGINT`
-    - `INT`
-    - `SMALLINT`
-    - `TINYINT`
-    - `BIT` (converts `True`/`False`/`None`)
-        
-- **Floating-Point Types:**
-    - `FLOAT` (SQL `FLOAT(53)`) 
-    - `REAL` (SQL `FLOAT(24)`)
-        
-- **String Types:**   
-    - `VARCHAR`  
-    - `NVARCHAR`
-        
-- **Date/Time Types:**
-    - **`DATE`**: Accepts a pandas `datetime` column but **truncates the time component**. Intended for SQL `DATE` columns. 
-    - **`DATETIME2`**: Accepts a pandas `datetime` column and **preserves the full timestamp** (up to 100ns precision). Intended for SQL `DATETIME2(7)` columns.
-        
-Support for other types (like `DECIMAL`/`NUMERIC`) will be added in future versions.
 
 ## Usage
 
 You have two functions to choose from, depending on your performance needs.
+
+---
 
 ### 1. Standard Insert (Simple, CSV-based)
 
@@ -113,7 +88,7 @@ try:
         username="your_sql_user",
         password="your_sql_password"
     )
-    logging.info("Successfully inserted data!")
+    logging.info("✅ Successfully inserted data!")
 
 except Exception as e:
     logging.error(f"Data insert failed: {e}")
@@ -177,11 +152,91 @@ try:
         use_trusted_connection=True,
         cleanup_temp_files=False  # Set to True in production
     )
-    logging.info("Successfully inserted data using NATIVE format!")
+    logging.info("✅ Successfully inserted data using NATIVE format!")
 
 except Exception as e:
     logging.error(f"Data insert failed: {e}")
 ```
+
+## ⚡ Native Format Supported Types
+
+The high-performance `bulk_insert_bcp_native` function currently supports the following SQL Server data types. You must ensure the `type` specified in your `table_schema` dictionary matches one of the following strings (case-insensitive):
+
+- **Integer Types:**
+    
+    - `BIGINT`
+        
+    - `INT`
+        
+    - `SMALLINT`
+        
+    - `TINYINT`
+        
+    - `BIT` (converts `True`/`False`/`None`)
+        
+- **Floating-Point Types:**
+    
+    - `FLOAT` (SQL `FLOAT(53)`)
+        
+    - `REAL` (SQL `FLOAT(24)`)
+        
+- **String Types:**
+    
+    - `VARCHAR`
+        
+    - `NVARCHAR`
+        
+- **Date/Time Types:**
+    
+    - **`DATE`**: Accepts a pandas `datetime` column but **truncates the time component**. Intended for SQL `DATE` columns.
+        
+    - **`DATETIME2`**: Accepts a pandas `datetime` column and **preserves the full timestamp** (up to 100ns precision). Intended for SQL `DATETIME2(7)` columns.
+        
+- **Geometry Types:**
+    
+    - `GEOMETRY`
+        
+Support for other types (like `DECIMAL`/`NUMERIC`) will be added in future versions.
+
+### Geometry columns (`GEOMETRY`)
+
+For columns of type `GEOMETRY`, this library **does not** convert WKT or other textual
+representations to WKB. It expects that the DataFrame already contains the binary
+representation (WKB / varbinary) of the geometry.
+
+Supported input values in the DataFrame (per row):
+
+- `bytes` / `bytearray` / `memoryview` containing the geometry WKB, for example:
+  the result of `SELECT geom.STAsBinary()` in SQL Server.
+- `str` containing the hexadecimal representation of the WKB, for example:
+  - `"0xE61000000104..."`  
+  - `"E61000000104..."` (with or without the `0x` prefix, with or without whitespace)
+
+**Not supported:**
+
+- WKT strings like `"POLYGON (...)"`, `"POINT (...)"`, etc.
+- GeoJSON or any other textual format.
+
+During conversion, the library generates a native BCP payload with a 4-byte length prefix:
+
+- Non-null row:
+  - `[4-byte little-endian length N][N bytes of WKB]`
+- Null row:
+  - `[4-byte little-endian -1]` (`0xFF FF FF FF`)
+
+Your `table_schema` should declare the geometry column as:
+
+```python
+table_schema = {
+    "col_geometry": {"type": "GEOMETRY"},
+    }
+```
+
+And the generated BCP XML for this column will use:
+
+- FIELD with xsi:type="NativePrefix" and PREFIX_LENGTH="4"
+
+- COLUMN with xsi:type="SQLUDT"
 
 ## License
 
