@@ -4,15 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "py-bcp-utils"
-version = "0.1.1"
+version = "1.0.0"
 authors = [
   { name="João Afonso", email="contact.joaoafonso@gmail.com" },
 ]
-description = "A utility to run BCP bulk inserts from a Pandas DataFrame."
+description = "A utility to run fast BCP bulk inserts from a Pandas DataFrame, including CSV and high-speed native format."
 readme = "README.md"
 requires-python = ">=3.8"
 
-# This is the modern way to declare a license
 license = "MIT"
 
 classifiers = [
@@ -22,7 +21,8 @@ classifiers = [
 ]
 dependencies = [
     "pandas>=1.0.0",
+    "numpy>=1.20.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/Afonso-13"
+github = "https://github.com/Afonso-13/py-bcp-utils"
