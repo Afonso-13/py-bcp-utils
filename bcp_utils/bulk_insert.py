@@ -140,7 +140,8 @@ def bulk_insert_bcp_native(
     batch_num: Optional[int] = None,
     bcp_batch_size: int = 500000,
     cleanup_temp_files: bool = False,
-    trust_server_certificate: bool = True
+    trust_server_certificate: bool = True,
+    odbc_version: Optional[int] = 17
 ):
     """
         Saves a DataFrame to native BCP format (.dat) and uses an
@@ -233,8 +234,11 @@ def bulk_insert_bcp_native(
             '-e', error_log_file,
         ]
         
-        if trust_server_certificate:
+        if trust_server_certificate and odbc_version == 18:
             bcp_command.append('-u')
+            
+        if trust_server_certificate and odbc_version != 18:
+            bcp_command.append('-C')
 
         if use_trusted_connection:
             bcp_command.append('-T')
