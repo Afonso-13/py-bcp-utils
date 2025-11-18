@@ -165,6 +165,8 @@ def bulk_insert_bcp_native(
             cleanup_temp_files: If True, deletes the temporary .dat and .xml files
                                 after the command finishes. Defaults to False,
                                 which is safer for debugging.
+            trust_server_certificate: If True, trusts the certificate running in the server.
+            odbc_version: OBDC Driver version.
     """
     log_prefix = f"[Batch {batch_num}] " if batch_num is not None else ""
 
@@ -172,8 +174,9 @@ def bulk_insert_bcp_native(
         logger.warning(f"{log_prefix}DataFrame is empty. Skipping.")
         return
 
-    dat_file = temp_file_base + ".dat"
-    xml_format_file = temp_file_base + ".xml"
+    dat_file = os.path.abspath(temp_file_base + ".dat")
+    xml_format_file = os.path.abspath(temp_file_base + ".xml")
+    error_log_file = os.path.abspath(error_log_file)
 
     try:
         logger.info(f"{log_prefix}Generating {xml_format_file}...")
