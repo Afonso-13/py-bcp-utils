@@ -234,7 +234,7 @@ def bulk_insert_bcp_native(
         ]
         
         if trust_server_certificate:
-            bcp_command.append('-C')
+            bcp_command.append('-u')
 
         if use_trusted_connection:
             bcp_command.append('-T')
