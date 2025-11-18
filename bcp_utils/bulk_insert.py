@@ -139,7 +139,8 @@ def bulk_insert_bcp_native(
     password: Optional[str] = None,
     batch_num: Optional[int] = None,
     bcp_batch_size: int = 500000,
-    cleanup_temp_files: bool = False
+    cleanup_temp_files: bool = False,
+    trust_server_certificate: bool = True
 ):
     """
         Saves a DataFrame to native BCP format (.dat) and uses an
@@ -231,6 +232,9 @@ def bulk_insert_bcp_native(
             '-b', str(bcp_batch_size),
             '-e', error_log_file,
         ]
+        
+        if trust_server_certificate:
+            bcp_command.append('-C')
 
         if use_trusted_connection:
             bcp_command.append('-T')
